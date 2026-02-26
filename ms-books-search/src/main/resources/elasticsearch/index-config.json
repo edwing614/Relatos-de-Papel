@@ -1,0 +1,94 @@
+{
+  "settings": {
+    "index": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "analysis": {
+      "analyzer": {
+        "spanish_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding", "spanish_stop", "spanish_stemmer"]
+        }
+      },
+      "filter": {
+        "spanish_stop": {
+          "type": "stop",
+          "stopwords": "_spanish_"
+        },
+        "spanish_stemmer": {
+          "type": "stemmer",
+          "language": "spanish"
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "idLibro": { "type": "integer" },
+      "codigo": { "type": "keyword" },
+      "codigoIsbn": { "type": "keyword" },
+      "titulo": {
+        "type": "search_as_you_type",
+        "analyzer": "spanish_analyzer",
+        "fields": {
+          "suggest": {
+            "type": "text",
+            "analyzer": "standard"
+          }
+        }
+      },
+      "descripcion": {
+        "type": "text",
+        "analyzer": "spanish_analyzer",
+        "fields": {
+          "suggest": {
+            "type": "text",
+            "analyzer": "standard"
+          }
+        }
+      },
+      "precio": {
+        "type": "scaled_float",
+        "scaling_factor": 100
+      },
+      "visible": { "type": "boolean" },
+      "fechaPublicacion": {
+        "type": "date",
+        "format": "yyyy-MM-dd"
+      },
+      "rating": { "type": "integer" },
+      "stockDisponible": { "type": "integer" },
+      "autores": {
+        "type": "nested",
+        "properties": {
+          "idAutor": { "type": "integer" },
+          "nombre": {
+            "type": "text",
+            "analyzer": "spanish_analyzer",
+            "fields": {
+              "keyword": { "type": "keyword" }
+            }
+          },
+          "pais": { "type": "keyword" }
+        }
+      },
+      "categorias": {
+        "type": "nested",
+        "properties": {
+          "idCategoria": { "type": "integer" },
+          "nombre": {
+            "type": "keyword",
+            "fields": {
+              "text": {
+                "type": "text",
+                "analyzer": "spanish_analyzer"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

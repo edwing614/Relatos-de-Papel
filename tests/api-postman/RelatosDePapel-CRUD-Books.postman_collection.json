@@ -1,0 +1,332 @@
+{
+  "info": {
+    "name": "RelatosDePapel - CRUD Books",
+    "description": "Coleccion completa de pruebas CRUD para la entidad Libro del sistema Relatos de Papel (books-microservices).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrlCatalogue",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "booksPath",
+      "value": "/libros"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check - Catalogue",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Catalogue service is UP', function () {",
+              "    pm.response.to.have.status(200);",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.status).to.eql('UP');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/actuator/health",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["actuator", "health"]
+        }
+      }
+    },
+    {
+      "name": "2. Listar Libros (GET)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Response has content array', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.content).to.be.an('array');",
+              "    pm.expect(json.content.length).to.be.greaterThan(0);",
+              "});",
+              "",
+              "pm.test('Libros have required fields', function () {",
+              "    var libro = pm.response.json().content[0];",
+              "    pm.expect(libro).to.have.property('idLibro');",
+              "    pm.expect(libro).to.have.property('titulo');",
+              "    pm.expect(libro).to.have.property('precio');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros"]
+        }
+      }
+    },
+    {
+      "name": "3. Crear Libro (POST)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "var timestamp = Date.now();",
+              "pm.variables.set('uniqueCode', 'TEST-' + timestamp);",
+              "pm.variables.set('uniqueIsbn', '978-TEST-' + timestamp);"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 201 Created', function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test('Libro created with correct data', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.titulo).to.eql('Libro de Prueba Automatizada');",
+              "    pm.expect(json.idLibro).to.be.a('number');",
+              "    pm.environment.set('bookId', json.idLibro);",
+              "    pm.environment.set('bookTitulo', json.titulo);",
+              "    pm.environment.set('bookIsbn', json.codigoIsbn);",
+              "    pm.environment.set('uniqueCode', pm.variables.get('uniqueCode'));",
+              "});",
+              "",
+              "pm.test('Libro created successfully', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.visible).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigo\": \"{{uniqueCode}}\",\n  \"codigoIsbn\": \"{{uniqueIsbn}}\",\n  \"titulo\": \"Libro de Prueba Automatizada\",\n  \"descripcion\": \"Libro creado por Newman para pruebas CRUD automatizadas\",\n  \"precio\": 29.99,\n  \"visible\": true,\n  \"fechaPublicacion\": \"2026-01-15\",\n  \"rating\": 4,\n  \"autorIds\": [1],\n  \"categoriaIds\": [1]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros"]
+        }
+      }
+    },
+    {
+      "name": "4. Obtener Libro por ID (GET)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Libro matches created data', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.titulo).to.eql('Libro de Prueba Automatizada');",
+              "    pm.expect(json.precio).to.eql(29.99);",
+              "    pm.expect(json.rating).to.eql(4);",
+              "});",
+              "",
+              "pm.test('Libro has autores and categorias', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.autores).to.be.an('array');",
+              "    pm.expect(json.categorias).to.be.an('array');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros/{{bookId}}",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros", "{{bookId}}"]
+        }
+      }
+    },
+    {
+      "name": "5. Actualizar Libro (PUT)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Libro updated correctly', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.titulo).to.eql('Libro Actualizado por Newman');",
+              "    pm.expect(json.precio).to.eql(39.99);",
+              "    pm.expect(json.rating).to.eql(5);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"codigo\": \"{{uniqueCode}}\",\n  \"codigoIsbn\": \"{{bookIsbn}}\",\n  \"titulo\": \"Libro Actualizado por Newman\",\n  \"descripcion\": \"Libro actualizado durante prueba CRUD automatizada\",\n  \"precio\": 39.99,\n  \"visible\": true,\n  \"fechaPublicacion\": \"2026-02-01\",\n  \"rating\": 5,\n  \"autorIds\": [1, 2],\n  \"categoriaIds\": [1]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros/{{bookId}}",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros", "{{bookId}}"]
+        }
+      }
+    },
+    {
+      "name": "6. Verificar Actualizacion (GET)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Update persisted correctly', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.titulo).to.eql('Libro Actualizado por Newman');",
+              "    pm.expect(json.precio).to.eql(39.99);",
+              "    pm.expect(json.rating).to.eql(5);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros/{{bookId}}",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros", "{{bookId}}"]
+        }
+      }
+    },
+    {
+      "name": "7. Actualizacion Parcial (PATCH)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 200 OK', function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test('Partial update applied', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json.descripcion).to.eql('Descripcion parcheada por Newman');",
+              "    pm.expect(json.titulo).to.eql('Libro Actualizado por Newman');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"descripcion\": \"Descripcion parcheada por Newman\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros/{{bookId}}",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros", "{{bookId}}"]
+        }
+      }
+    },
+    {
+      "name": "8. Eliminar Libro (DELETE)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status 204 No Content', function () {",
+              "    pm.response.to.have.status(204);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros/{{bookId}}",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros", "{{bookId}}"]
+        }
+      }
+    },
+    {
+      "name": "9. Confirmar Eliminacion (GET 404)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Libro no longer exists (404)', function () {",
+              "    pm.response.to.have.status(404);",
+              "});",
+              "",
+              "pm.test('Error response follows RFC 7807', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.have.property('status', 404);",
+              "    pm.expect(json).to.have.property('detail');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrlCatalogue}}/libros/{{bookId}}",
+          "host": ["{{baseUrlCatalogue}}"],
+          "path": ["libros", "{{bookId}}"]
+        }
+      }
+    }
+  ]
+}

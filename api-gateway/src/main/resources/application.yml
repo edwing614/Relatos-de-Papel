@@ -1,0 +1,124 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Catalogue Service Routes
+        - id: catalogue-service
+          uri: lb://ms-books-catalogue
+          predicates:
+            - Path=/catalogue/**
+          filters:
+            - StripPrefix=1
+
+        # Payments Service Routes
+        - id: payments-service
+          uri: lb://ms-books-payments
+          predicates:
+            - Path=/payments/**
+          filters:
+            - StripPrefix=1
+
+        # Search Service Routes (Elasticsearch)
+        - id: search-service
+          uri: lb://ms-books-search
+          predicates:
+            - Path=/search/**
+          filters:
+            - StripPrefix=1
+
+        # Gateway Transcription Routes (POST -> other methods)
+        - id: gw-catalogue-search
+          uri: lb://ms-books-catalogue
+          predicates:
+            - Path=/gw/catalogue/libros/search
+            - Method=POST
+          filters:
+            - StripPrefix=2
+            - SetPath=/libros/search
+
+        # POST→GET real transcription (demo)
+        - id: gw-catalogue-get
+          uri: lb://ms-books-catalogue
+          predicates:
+            - Path=/gw/catalogue/libros/get/{id}
+            - Method=POST
+          filters:
+            - StripPrefix=2
+            - SetPath=/libros/{id}
+            - name: TranscribeMethod
+              args:
+                targetMethod: GET
+
+        - id: gw-catalogue-delete
+          uri: lb://ms-books-catalogue
+          predicates:
+            - Path=/gw/catalogue/libros/delete/{id}
+            - Method=POST
+          filters:
+            - StripPrefix=2
+            - SetPath=/libros/{id}
+            - name: TranscribeMethod
+              args:
+                targetMethod: DELETE
+
+        - id: gw-catalogue-update
+          uri: lb://ms-books-catalogue
+          predicates:
+            - Path=/gw/catalogue/libros/update/{id}
+            - Method=POST
+          filters:
+            - StripPrefix=2
+            - SetPath=/libros/{id}
+            - name: TranscribeMethod
+              args:
+                targetMethod: PUT
+
+        - id: gw-catalogue-patch
+          uri: lb://ms-books-catalogue
+          predicates:
+            - Path=/gw/catalogue/libros/patch/{id}
+            - Method=POST
+          filters:
+            - StripPrefix=2
+            - SetPath=/libros/{id}
+            - name: TranscribeMethod
+              args:
+                targetMethod: PATCH
+
+        - id: gw-payments-create
+          uri: lb://ms-books-payments
+          predicates:
+            - Path=/gw/payments/create
+            - Method=POST
+          filters:
+            - StripPrefix=2
+            - SetPath=/pedidos
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    gateway:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG

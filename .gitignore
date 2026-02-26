@@ -1,0 +1,44 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iml
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+build/
+out/
+
+# H2 Database
+*.db
+*.trace.db
+*.lock.db
+
+# Node
+node_modules/
+frontend/build/
+
+# Env
+.env
+!.env.example
+
+# Docker
+es-data/
+books-microservices.zip
+*.zip

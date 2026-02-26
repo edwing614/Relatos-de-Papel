@@ -1,0 +1,13 @@
+{
+  "name": "relatos-de-papel-playwright",
+  "version": "1.0.0",
+  "description": "Pruebas UI funcionales sobre Swagger UI - Relatos de Papel",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "report": "npx playwright show-report ../../evidencias/playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}
